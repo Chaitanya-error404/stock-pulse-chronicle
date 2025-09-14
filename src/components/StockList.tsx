@@ -1,22 +1,24 @@
 import { Stock } from '@/types/stock';
 import { Card } from '@/components/ui/card';
+import { AddStockDialog } from '@/components/AddStockDialog';
 import { cn } from '@/lib/utils';
 
 interface StockListProps {
   stocks: Stock[];
   selectedStock: string | null;
   onStockSelect: (symbol: string) => void;
+  onAddStock: (stock: { symbol: string; name: string }) => void;
 }
 
-export const StockList = ({ stocks, selectedStock, onStockSelect }: StockListProps) => {
+export const StockList = ({ stocks, selectedStock, onStockSelect, onAddStock }: StockListProps) => {
   return (
     <Card className="h-full bg-panel-dark border-panel-border">
       <div className="p-4 border-b border-panel-border">
         <h2 className="text-sm font-semibold text-text-primary">Stock Watchlist</h2>
-        <p className="text-xs text-text-muted">Click to view news</p>
+        <p className="text-xs text-text-muted">Click to view news • Real-time updates</p>
       </div>
       
-      <div className="p-2 space-y-1 overflow-y-auto h-[calc(100%-80px)]">
+      <div className="p-2 space-y-1 overflow-y-auto h-[calc(100%-120px)]">
         {stocks.map((stock) => (
           <div
             key={stock.symbol}
@@ -52,6 +54,10 @@ export const StockList = ({ stocks, selectedStock, onStockSelect }: StockListPro
             </div>
           </div>
         ))}
+      </div>
+      
+      <div className="p-2 border-t border-panel-border">
+        <AddStockDialog onAddStock={onAddStock} />
       </div>
     </Card>
   );

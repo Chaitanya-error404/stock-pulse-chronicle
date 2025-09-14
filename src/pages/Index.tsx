@@ -1,17 +1,31 @@
 import { useState, useEffect } from 'react';
 import { StockList } from '@/components/StockList';
 import { NewsPanel } from '@/components/NewsPanel';
-import { STOCKS, fetchStockNews, fetchAllNews } from '@/services/stockService';
-import { NewsArticle } from '@/types/stock';
+import { getStocks, fetchStockNews, fetchAllNews, updateStockPrices, addStock } from '@/services/stockService';
+import { NewsArticle, Stock } from '@/types/stock';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
+  const [stocks, setStocks] = useState<Stock[]>([]);
   const [selectedStock, setSelectedStock] = useState<string | null>(null);
   const [stockNews, setStockNews] = useState<NewsArticle[]>([]);
   const [allNews, setAllNews] = useState<NewsArticle[]>([]);
   const [loadingStock, setLoadingStock] = useState(false);
   const [loadingAll, setLoadingAll] = useState(false);
   const { toast } = useToast();
+
+  // Load stocks and start real-time updates
+  useEffect(() => {
+    setStocks(getStocks());
+    
+    // Update prices every 3 seconds
+    const priceInterval = setInterval(() => {
+      const updatedStocks = updateStockPrices();
+      setStocks(updatedStocks);
+    }, 3000);
+
+    return () => clearInterval(priceInterval);
+  }, []);
 
   // Load all news on component mount
   useEffect(() => {
@@ -32,7 +46,7 @@ const Index = () => {
     };
 
     loadAllNews();
-  }, [toast]);
+  }, [toast, stocks]); // Reload news when stocks change
 
   // Load stock-specific news when a stock is selected
   const handleStockSelect = async (symbol: string) => {
@@ -53,6 +67,24 @@ const Index = () => {
     }
   };
 
+  // Add new stock to watchlist
+  const handleAddStock = (stockData: { symbol: string; name: string }) => {
+    try {
+      const newStock = addStock(stockData);
+      setStocks(getStocks());
+      toast({
+        title: "Stock Added",
+        description: `${newStock.symbol} has been added to your watchlist`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add stock to watchlist",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -70,9 +102,10 @@ const Index = () => {
         {/* Left Panel - Stock List */}
         <div className="w-80 border-r border-panel-border p-4">
           <StockList
-            stocks={STOCKS}
+            stocks={stocks}
             selectedStock={selectedStock}
             onStockSelect={handleStockSelect}
+            onAddStock={handleAddStock}
           />
         </div>
 

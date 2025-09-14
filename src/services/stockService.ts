@@ -1,7 +1,7 @@
 import { Stock, NewsArticle } from '@/types/stock';
 
 // Mock stock data based on the reference image
-export const STOCKS: Stock[] = [
+let STOCKS: Stock[] = [
   { symbol: 'RELIANCE', name: 'Reliance Industries', price: 1395.00, change: 11.70, changePercent: 0.85 },
   { symbol: 'VIKASLIFE', name: 'Vikas Lifecare', price: 2.23, change: -0.02, changePercent: -0.89 },
   { symbol: 'WELSPUNLIV', name: 'Welspun Living', price: 121.07, change: -1.93, changePercent: -1.57 },
@@ -12,6 +12,41 @@ export const STOCKS: Stock[] = [
   { symbol: 'RELINFRA', name: 'Reliance Infrastructure', price: 248.85, change: -9.35, changePercent: -3.62 },
   { symbol: 'IDEA', name: 'Vodafone Idea', price: 7.66, change: 0.25, changePercent: 3.37 },
 ];
+
+// Get current stocks
+export const getStocks = (): Stock[] => [...STOCKS];
+
+// Add new stock
+export const addStock = (stock: Omit<Stock, 'price' | 'change' | 'changePercent'>): Stock => {
+  const newStock: Stock = {
+    ...stock,
+    price: Math.random() * 1000 + 50, // Random price between 50-1050
+    change: (Math.random() - 0.5) * 20, // Random change between -10 to +10
+    changePercent: (Math.random() - 0.5) * 6, // Random percentage between -3% to +3%
+  };
+  
+  STOCKS.push(newStock);
+  return newStock;
+};
+
+// Simulate real-time price updates
+export const updateStockPrices = (): Stock[] => {
+  STOCKS = STOCKS.map(stock => {
+    const priceChange = (Math.random() - 0.5) * 2; // Random change between -1 to +1
+    const newPrice = Math.max(0.01, stock.price + priceChange);
+    const change = newPrice - stock.price + stock.change;
+    const changePercent = (change / (newPrice - change)) * 100;
+    
+    return {
+      ...stock,
+      price: Number(newPrice.toFixed(2)),
+      change: Number(change.toFixed(2)),
+      changePercent: Number(changePercent.toFixed(2))
+    };
+  });
+  
+  return [...STOCKS];
+};
 
 // Mock news data generator
 const generateMockNews = (stock: string, count: number = 5): NewsArticle[] => {
