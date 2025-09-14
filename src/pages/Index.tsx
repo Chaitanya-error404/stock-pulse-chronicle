@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { StockList } from '@/components/StockList';
 import { NewsPanel } from '@/components/NewsPanel';
-import { getStocks, fetchStockNews, fetchAllNews, updateStockPrices, addStock } from '@/services/stockService';
+import { getStocks, fetchStockNews, fetchAllNews, fetchNewNews, updateStockPrices, addStock, removeStock } from '@/services/stockService';
 import { NewsArticle, Stock } from '@/types/stock';
 import { useToast } from '@/hooks/use-toast';
 
@@ -46,7 +46,29 @@ const Index = () => {
     };
 
     loadAllNews();
-  }, [toast, stocks]); // Reload news when stocks change
+  }, [toast]);
+
+  // Check for new news periodically without refreshing existing news
+  useEffect(() => {
+    const checkForNewNews = async () => {
+      if (allNews.length === 0) return;
+      
+      try {
+        const existingIds = allNews.map(article => article.id);
+        const newArticles = await fetchNewNews(existingIds);
+        
+        if (newArticles.length > 0) {
+          setAllNews(prev => [...newArticles, ...prev]);
+        }
+      } catch (error) {
+        // Silently handle errors for background updates
+      }
+    };
+
+    const newsInterval = setInterval(checkForNewNews, 10000); // Check every 10 seconds
+
+    return () => clearInterval(newsInterval);
+  }, [allNews]);
 
   // Load stock-specific news when a stock is selected
   const handleStockSelect = async (symbol: string) => {
@@ -85,6 +107,31 @@ const Index = () => {
     }
   };
 
+  // Remove stock from watchlist
+  const handleRemoveStock = (symbol: string) => {
+    try {
+      const removed = removeStock(symbol);
+      if (removed) {
+        setStocks(getStocks());
+        // Clear selected stock if it was removed
+        if (selectedStock === symbol) {
+          setSelectedStock(null);
+          setStockNews([]);
+        }
+        toast({
+          title: "Stock Removed",
+          description: `${symbol} has been removed from your watchlist`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove stock from watchlist",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -106,6 +153,7 @@ const Index = () => {
             selectedStock={selectedStock}
             onStockSelect={handleStockSelect}
             onAddStock={handleAddStock}
+            onRemoveStock={handleRemoveStock}
           />
         </div>
 

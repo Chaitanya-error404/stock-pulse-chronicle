@@ -1,6 +1,8 @@
 import { Stock } from '@/types/stock';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { AddStockDialog } from '@/components/AddStockDialog';
+import { Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StockListProps {
@@ -8,9 +10,10 @@ interface StockListProps {
   selectedStock: string | null;
   onStockSelect: (symbol: string) => void;
   onAddStock: (stock: { symbol: string; name: string }) => void;
+  onRemoveStock: (symbol: string) => void;
 }
 
-export const StockList = ({ stocks, selectedStock, onStockSelect, onAddStock }: StockListProps) => {
+export const StockList = ({ stocks, selectedStock, onStockSelect, onAddStock, onRemoveStock }: StockListProps) => {
   return (
     <Card className="h-full bg-panel-dark border-panel-border">
       <div className="p-4 border-b border-panel-border">
@@ -22,15 +25,17 @@ export const StockList = ({ stocks, selectedStock, onStockSelect, onAddStock }: 
         {stocks.map((stock) => (
           <div
             key={stock.symbol}
-            onClick={() => onStockSelect(stock.symbol)}
             className={cn(
-              "p-3 rounded-md cursor-pointer transition-all duration-200 animate-slide-in",
+              "p-3 rounded-md transition-all duration-200 animate-slide-in",
               "hover:bg-accent border border-transparent",
               selectedStock === stock.symbol && "bg-accent border-primary/30",
-              "group"
+              "group relative"
             )}
           >
-            <div className="flex items-center justify-between">
+            <div 
+              onClick={() => onStockSelect(stock.symbol)}
+              className="flex items-center justify-between cursor-pointer"
+            >
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-text-primary truncate">
                   {stock.symbol}
@@ -52,6 +57,18 @@ export const StockList = ({ stocks, selectedStock, onStockSelect, onAddStock }: 
                 </div>
               </div>
             </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveStock(stock.symbol);
+              }}
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="w-3 h-3" />
+            </Button>
           </div>
         ))}
       </div>

@@ -29,6 +29,13 @@ export const addStock = (stock: Omit<Stock, 'price' | 'change' | 'changePercent'
   return newStock;
 };
 
+// Remove stock
+export const removeStock = (symbol: string): boolean => {
+  const initialLength = STOCKS.length;
+  STOCKS = STOCKS.filter(stock => stock.symbol !== symbol);
+  return STOCKS.length < initialLength;
+};
+
 // Simulate real-time price updates
 export const updateStockPrices = (): Stock[] => {
   STOCKS = STOCKS.map(stock => {
@@ -97,4 +104,21 @@ export const fetchAllNews = async (): Promise<NewsArticle[]> => {
   
   // Sort by date (newest first)
   return allNews.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+};
+
+// Fetch only new news articles (simulates checking for updates)
+export const fetchNewNews = async (existingNewsIds: string[]): Promise<NewsArticle[]> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 500));
+  
+  // 30% chance of having new news
+  if (Math.random() > 0.7) {
+    const randomStock = STOCKS[Math.floor(Math.random() * STOCKS.length)];
+    const newArticles = generateMockNews(randomStock.symbol, 1).filter(
+      article => !existingNewsIds.includes(article.id)
+    );
+    return newArticles;
+  }
+  
+  return [];
 };
